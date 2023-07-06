@@ -1,45 +1,51 @@
-import React from "react";
-import { useState, useEffect } from "react";
+import React, { useState } from "react";
+
 const AddBlog = () => {
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
-  const [blogs, setBlogs] = useState([]);
+  const [selectedImage, setSelectedImage] = useState(null);
 
-  useEffect(() => {
-    const storedBlogs = JSON.parse(localStorage.getItem("blogs"));
-    if (storedBlogs && storedBlogs.length > 0) {
-      setBlogs(storedBlogs);
-    }
-  }, []);
-  useEffect(() => {
-    // Save blogs to local storage whenever it changes
-    localStorage.setItem("blogs", JSON.stringify(blogs));
-  }, [blogs]);
   const handleOnSubmit = (e) => {
     e.preventDefault();
-    if (title && desc) {
+    if (title && desc && selectedImage) {
       const newBlog = {
         title: title,
         description: desc,
+        image: selectedImage,
       };
-      setBlogs([...blogs, newBlog]);
+
+      // Store the new blog data in local storage
+      const storedBlogs = JSON.parse(localStorage.getItem("blogs")) || [];
+      const updatedBlogs = [...storedBlogs, newBlog];
+      localStorage.setItem("blogs", JSON.stringify(updatedBlogs));
+
       setTitle("");
       setDesc("");
+      setSelectedImage(null);
     }
   };
+
   const handleTitleChange = (e) => {
     setTitle(e.target.value);
-
   };
 
   const handleDescChange = (e) => {
     setDesc(e.target.value);
+  };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    // Convert image file to data URL
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setSelectedImage(reader.result);
+    };
+    reader.readAsDataURL(file);
   };
   return (
-    //    here we will add the blog
     <div className="container mx-auto">
-      <div className="mt-11">
+      <div>
         <form onSubmit={handleOnSubmit}>
           <label htmlFor="addBlog">Title</label>
           <input
@@ -54,34 +60,17 @@ const AddBlog = () => {
             value={desc}
             onChange={handleDescChange}
           ></textarea>
-          <label htmlFor="">choose</label>
-          <input type="image" alt="image" />
-          <button className="border-2 bg-red-400 text-white p-2 ml-2" type="submit">
-            Sumbit
+          <div>
+            <input type="file" accept="image/*" onChange={handleImageChange} />
+            {selectedImage && <img src={selectedImage} alt="Selected" />}
+          </div>
+          <button
+            className="border-2 bg-red-400 text-white p-2 ml-2"
+            type="submit"
+          >
+            Submit
           </button>
         </form>
-      </div>
-
-      {/* make a table below for showing the data which we take from user as input*/}
-      <div className="mt-11">
-        <table className="border-2 border-black">
-          <thead>
-            <tr>
-              <th className="border-2 border-black">Title</th>
-              <th className="border-2 border-black">Description</th>
-              <th className="border-2 border-black">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {blogs.map((blog, index) => (
-              <tr key={index}>
-                <td className="border-2 border-black">{blog.title}</td>
-                <td className="border-2 border-black">{blog.description}</td>
-                <td className="border-2 border-black">Action</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>    
       </div>
     </div>
   );
